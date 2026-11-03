@@ -187,6 +187,8 @@ input[type='checkbox'] { width: auto; accent-color: var(--accent); }
 .p-info { width: 220px; min-width: 0; }
 .play { width: 40px; height: 40px; border-radius: 50%; background: var(--text); color: var(--bg); flex: none; }
 .wave { flex: 1; min-width: 0; }
+.volume { display: flex; align-items: center; gap: 4px; flex: none; }
+.volume input { width: 100px; }
 
 @media (max-width: 900px) {
   .app { grid-template-columns: 1fr; height: auto; min-height: 100vh; }

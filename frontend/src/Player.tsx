@@ -10,6 +10,8 @@ export function Player({ track, onPlayingChange, toggleSignal }: Props) {
   const ws = useRef<WaveSurfer | null>(null)
   const [time, setTime] = useState(0)
   const [playing, setPlaying] = useState(false)
+  const [volume, setVolume] = useState(loadVolume)
+  const [muted, setMuted] = useState(false)
 
   useEffect(() => {
     const w = WaveSurfer.create({
@@ -33,6 +35,15 @@ export function Player({ track, onPlayingChange, toggleSignal }: Props) {
   useEffect(() => onPlayingChange(playing), [playing, onPlayingChange])
 
   useEffect(() => {
+    ws.current?.setVolume(muted ? 0 : volume)
+    try {
+      localStorage.setItem('volume', String(volume))
+    } catch {
+      /* storage unavailable: volume just isn't remembered */
+    }
+  }, [volume, muted])
+
+  useEffect(() => {
     if (!track || !ws.current) return
     setTime(0)
     ws.current.load(track.mp3_url).then(() => ws.current?.play(), () => {})
@@ -54,6 +65,37 @@ export function Player({ track, onPlayingChange, toggleSignal }: Props) {
         {playing ? '❚❚' : '▶'}
       </button>
       <div className="wave" ref={el} />
+      <div className="volume">
+        <button
+          className="icon"
+          onClick={() => setMuted((m) => !m)}
+          aria-label={muted ? 'Включить звук' : 'Выключить звук'}
+          title={muted ? 'Включить звук' : 'Выключить звук'}
+        >
+          {muted || volume === 0 ? '🔇' : volume < 0.5 ? '🔉' : '🔊'}
+        </button>
+        <input
+          type="range"
+          min={0}
+          max={1}
+          step={0.01}
+          value={muted ? 0 : volume}
+          aria-label="Громкость"
+          onChange={(e) => {
+            setVolume(Number(e.target.value))
+            setMuted(false)
+          }}
+        />
+      </div>
     </footer>
   )
+}
+
+function loadVolume() {
+  try {
+    const v = Number(localStorage.getItem('volume'))
+    return localStorage.getItem('volume') !== null && v >= 0 && v <= 1 ? v : 0.8
+  } catch {
+    return 0.8
+  }
 }
