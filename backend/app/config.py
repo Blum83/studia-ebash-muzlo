@@ -11,7 +11,10 @@ class Settings(BaseSettings):
     engine: str = "acestep"
     models_dir: Path = ROOT / "models"
     output_dir: Path = ROOT / "data" / "outputs"
+    db_path: Path = ROOT / "data" / "songgen.db"
     device: str = "cuda"
+    host: str = "127.0.0.1"  # no auth: reach a remote box through an SSH tunnel
+    port: int = 8000
 
     # ACE-Step 1.5 — defaults are its GPU tier 5 (12-16 GB) profile.
     acestep_dit_model: str = "acestep-v15-turbo"

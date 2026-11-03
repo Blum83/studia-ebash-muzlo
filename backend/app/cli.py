@@ -65,6 +65,17 @@ def cmd_generate(a: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_serve(_: argparse.Namespace) -> int:
+    import uvicorn
+
+    from app.api import create_app
+    from app.db import DB
+
+    app = create_app(get_engine(settings), DB(settings.db_path), settings.output_dir)
+    uvicorn.run(app, host=settings.host, port=settings.port)
+    return 0
+
+
 def main() -> None:
     # ACE-Step prints emoji; the Windows console default (cp1251/cp1252) can't encode them.
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[union-attr]
@@ -73,6 +84,10 @@ def main() -> None:
 
     sub.add_parser("download", help="Download model weights into MODELS_DIR").set_defaults(
         fn=cmd_download
+    )
+
+    sub.add_parser("serve", help="Run the API server (model stays loaded)").set_defaults(
+        fn=cmd_serve
     )
 
     g = sub.add_parser("generate", help="Generate one song")

@@ -528,8 +528,8 @@ resolution-markers = [
     "python_full_version < '3.12' and platform_machine == 'x86_64' and sys_platform == 'linux'",
 ]
 dependencies = [
-    { name = "einops", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
-    { name = "torch", version = "2.10.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
+    { name = "einops", marker = "python_full_version < '3.12' and platform_machine == 'x86_64' and sys_platform == 'linux'" },
+    { name = "torch", version = "2.10.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "python_full_version < '3.12' and platform_machine == 'x86_64' and sys_platform == 'linux'" },
 ]
 wheels = [
     { url = "https://github.com/mjun0812/flash-attention-prebuild-wheels/releases/download/v0.7.12/flash_attn-2.8.3+cu128torch2.10-cp311-cp311-linux_x86_64.whl", hash = "sha256:fa848ca9b2039a70810547e9fd9a007cf5d14f0c6e09acad51afa0b5c3b50196" },
@@ -1793,11 +1793,14 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "ace-step", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux') or (platform_machine == 'AMD64' and sys_platform == 'win32')" },
+    { name = "fastapi", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux') or (platform_machine == 'AMD64' and sys_platform == 'win32')" },
     { name = "pydantic-settings", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux') or (platform_machine == 'AMD64' and sys_platform == 'win32')" },
+    { name = "uvicorn", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux') or (platform_machine == 'AMD64' and sys_platform == 'win32')" },
 ]
 
 [package.dev-dependencies]
 dev = [
+    { name = "httpx", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux') or (platform_machine == 'AMD64' and sys_platform == 'win32')" },
     { name = "pytest", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux') or (platform_machine == 'AMD64' and sys_platform == 'win32')" },
     { name = "ruff", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux') or (platform_machine == 'AMD64' and sys_platform == 'win32')" },
 ]
@@ -1805,11 +1808,14 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "ace-step", editable = "../third_party/ACE-Step-1.5" },
+    { name = "fastapi", specifier = ">=0.115" },
     { name = "pydantic-settings", specifier = ">=2.4" },
+    { name = "uvicorn", specifier = ">=0.30" },
 ]
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "httpx", specifier = ">=0.27" },
     { name = "pytest", specifier = ">=8" },
     { name = "ruff", specifier = ">=0.6" },
 ]
@@ -2150,7 +2156,7 @@ name = "triton-windows"
 version = "3.3.1.post21"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "setuptools", marker = "platform_machine == 'AMD64' and sys_platform == 'win32'" },
+    { name = "setuptools", marker = "python_full_version < '3.12' and platform_machine == 'AMD64' and sys_platform == 'win32'" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c1/2d/9df3b3bdcaee016a6d0fb345eeb9a0b8ade9892c1805fb6306b87474435c/triton_windows-3.3.1.post21-cp311-cp311-win_amd64.whl", hash = "sha256:abb76630c29e16d15c0e247e9859228f937bf45e96e08285466e1c8f2a76b53d", size = 41506973, upload-time = "2025-10-17T05:07:44.786Z" },
