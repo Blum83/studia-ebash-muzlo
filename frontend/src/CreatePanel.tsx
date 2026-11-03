@@ -15,7 +15,22 @@ const EMPTY: Params = {
 
 const STYLE_CHIPS = [
   'russian hip hop', 'pop punk', 'synthwave', 'indie rock', 'lofi chill', 'trap',
-  'folk', 'acoustic', 'female vocal', 'male vocal', 'melancholic', 'energetic',
+  'folk', 'acoustic', 'melancholic', 'energetic',
+]
+
+// ACE-Step has no voice presets; the voice is described in the caption.
+const VOICE_CHIPS: [string, string][] = [
+  ['Женский воздушный', 'female vocal, breathy, airy, soft'],
+  ['Женский мощный', 'female vocal, powerful belting, soulful'],
+  ['Женский рэп', 'female rap, fast flow, confident'],
+  ['Мужской баритон', 'male vocal, deep baritone, warm'],
+  ['Мужской хриплый', 'male vocal, raspy, smoky, gritty'],
+  ['Мужской высокий', 'male vocal, high tenor, bright, falsetto'],
+  ['Мужской рэп', 'male rap, laid-back flow, charismatic'],
+  ['Дуэт М+Ж', 'male-female duet, call and response'],
+  ['Хор', 'choir, gang vocals, layered harmonies'],
+  ['Шёпот', 'whispered vocal, intimate, close-mic'],
+  ['Автотюн', 'autotune vocal, melodic'],
 ]
 
 const LANGS = [
@@ -36,6 +51,7 @@ export function CreatePanel({ config, draft, onSubmitted }: Props) {
   const [p, setP] = useState<Params>(EMPTY)
   const [open, setOpen] = useState({ lyrics: true, styles: true, more: false })
   const [busy, setBusy] = useState<'' | 'writing' | 'submitting'>('')
+  const [simpleVoice, setSimpleVoice] = useState('')
   const [error, setError] = useState('')
   const claude = !!config?.lyrics_enabled
 
@@ -47,6 +63,18 @@ export function CreatePanel({ config, draft, onSubmitted }: Props) {
   }, [draft])
 
   const set = <K extends keyof Params>(k: K, v: Params[K]) => setP((x) => ({ ...x, [k]: v }))
+
+  const addTags = (tags: string) =>
+    set('caption', p.caption.trim() ? `${p.caption.trim()}, ${tags}` : tags)
+
+  // One voice at a time: picking a voice replaces the previously picked one.
+  const toggleVoice = (tags: string) => {
+    let c = p.caption
+    const wasOn = c.includes(tags)
+    for (const [, t] of VOICE_CHIPS) c = c.replace(t, '')
+    c = c.split(',').map((s) => s.trim()).filter(Boolean).join(', ')
+    set('caption', wasOn ? c : c ? `${c}, ${tags}` : tags)
+  }
 
   async function write(base: Params): Promise<Params> {
     setBusy('writing')
@@ -79,7 +107,7 @@ export function CreatePanel({ config, draft, onSubmitted }: Props) {
       let params = p
       if (mode === 'simple') {
         if (!p.idea.trim()) throw new Error('Опиши песню')
-        params = await write({ ...p, caption: '', lyrics: '', title: '' })
+        params = await write({ ...p, caption: simpleVoice, lyrics: '', title: '' })
         setP(params) // so Advanced shows what was generated
       } else if (!p.caption.trim()) {
         throw new Error('Заполни стиль')
@@ -110,6 +138,22 @@ export function CreatePanel({ config, draft, onSubmitted }: Props) {
             value={p.idea}
             onChange={(e) => set('idea', e.target.value)}
           />
+          <span className="label">Голос</span>
+          <div className="chips">
+            <button className={simpleVoice ? 'chip' : 'chip on'} onClick={() => setSimpleVoice('')}>
+              Авто
+            </button>
+            {VOICE_CHIPS.map(([name, tags]) => (
+              <button
+                key={name}
+                className={simpleVoice === tags ? 'chip on' : 'chip'}
+                title={tags}
+                onClick={() => setSimpleVoice(tags)}
+              >
+                {name}
+              </button>
+            ))}
+          </div>
           {!claude && (
             <p className="hint">
               Claude не подключён — залогинься в <code>claude</code> или задай ANTHROPIC_API_KEY, либо
@@ -148,12 +192,21 @@ export function CreatePanel({ config, draft, onSubmitted }: Props) {
             />
             <div className="chips">
               {STYLE_CHIPS.map((c) => (
-                <button
-                  key={c}
-                  className="chip"
-                  onClick={() => set('caption', p.caption.trim() ? `${p.caption.trim()}, ${c}` : c)}
-                >
+                <button key={c} className="chip" onClick={() => addTags(c)}>
                   {c}
+                </button>
+              ))}
+            </div>
+            <span className="label">Голос</span>
+            <div className="chips">
+              {VOICE_CHIPS.map(([name, tags]) => (
+                <button
+                  key={name}
+                  className={p.caption.includes(tags) ? 'chip on' : 'chip'}
+                  title={tags}
+                  onClick={() => toggleVoice(tags)}
+                >
+                  {name}
                 </button>
               ))}
             </div>
