@@ -35,7 +35,7 @@ class FakeEngine(MusicEngine):
 
 
 def make_client(tmp_path: Path, engine: MusicEngine) -> TestClient:
-    return TestClient(create_app(engine, DB(":memory:"), tmp_path))
+    return TestClient(create_app(engine, DB(":memory:"), tmp_path, ["testserver"]))
 
 
 def wait_job(client: TestClient, job_id: str) -> dict:
@@ -87,6 +87,12 @@ def test_validation(tmp_path: Path, patch: dict) -> None:
 def test_unknown_job_404(tmp_path: Path) -> None:
     with make_client(tmp_path, FakeEngine()) as c:
         assert c.get("/api/jobs/nope").status_code == 404
+
+
+def test_foreign_host_rejected(tmp_path: Path) -> None:
+    with make_client(tmp_path, FakeEngine()) as c:
+        r = c.get("/api/tracks", headers={"Host": "evil.example"})
+        assert r.status_code == 400
 
 
 def test_unknown_engine() -> None:

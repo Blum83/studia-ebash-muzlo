@@ -47,8 +47,9 @@ class JobRunner:
         """0 = running or finished, n = n jobs ahead (including the running one)."""
         if job.status != "queued":
             return 0
-        ahead = [j for j in self.jobs.values() if j.status in ("queued", "running")]
-        return ahead.index(job)
+        # list() snapshots the dict: the worker thread may add/update jobs concurrently.
+        ahead = [j for j in list(self.jobs.values()) if j.status in ("queued", "running")]
+        return ahead.index(job) if job in ahead else 0
 
     def _run(self) -> None:
         try:

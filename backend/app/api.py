@@ -4,6 +4,7 @@ from typing import Any
 
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from app.db import DB
 from app.engines import MusicEngine
@@ -11,7 +12,12 @@ from app.jobs import JobRunner
 from app.schemas import JobCreate
 
 
-def create_app(engine: MusicEngine, db: DB, output_dir: Path) -> FastAPI:
+def create_app(
+    engine: MusicEngine,
+    db: DB,
+    output_dir: Path,
+    allowed_hosts: list[str],
+) -> FastAPI:
     output_dir.mkdir(parents=True, exist_ok=True)
     runner = JobRunner(engine, db, output_dir)
 
@@ -21,6 +27,8 @@ def create_app(engine: MusicEngine, db: DB, output_dir: Path) -> FastAPI:
         yield
 
     app = FastAPI(title="songgen", lifespan=lifespan)
+    # No auth (loopback, single user); this blocks DNS-rebinding from random websites.
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=allowed_hosts)
     app.state.runner = runner
 
     def track_out(t: dict[str, Any]) -> dict[str, Any]:

@@ -71,7 +71,9 @@ def cmd_serve(_: argparse.Namespace) -> int:
     from app.api import create_app
     from app.db import DB
 
-    app = create_app(get_engine(settings), DB(settings.db_path), settings.output_dir)
+    app = create_app(
+        get_engine(settings), DB(settings.db_path), settings.output_dir, settings.allowed_hosts
+    )
     uvicorn.run(app, host=settings.host, port=settings.port)
     return 0
 

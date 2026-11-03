@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     device: str = "cuda"
     host: str = "127.0.0.1"  # no auth: reach a remote box through an SSH tunnel
     port: int = 8000
+    allowed_hosts: list[str] = ["localhost", "127.0.0.1"]  # Host header allow-list
 
     # ACE-Step 1.5 — defaults are its GPU tier 5 (12-16 GB) profile.
     acestep_dit_model: str = "acestep-v15-turbo"
