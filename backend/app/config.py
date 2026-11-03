@@ -17,6 +17,13 @@ class Settings(BaseSettings):
     port: int = 8000
     allowed_hosts: list[str] = ["localhost", "127.0.0.1"]  # Host header allow-list
 
+    # Song writer: "auto" = API key if set, else the logged-in `claude` CLI; "off" hides it.
+    lyrics_provider: str = "auto"
+    anthropic_api_key: str = ""
+    anthropic_model: str = "claude-opus-5-5"
+    claude_cli: str = "claude"
+    claude_cli_model: str = ""  # empty = the CLI's default model
+
     # ACE-Step 1.5 — defaults are its GPU tier 5 (12-16 GB) profile.
     acestep_dit_model: str = "acestep-v15-turbo"
     acestep_lm_model: str = "acestep-5Hz-lm-0.6B"  # empty string disables the LM

@@ -1,6 +1,7 @@
 import logging
 import os
 import queue
+import re
 import threading
 import uuid
 from dataclasses import dataclass, field
@@ -13,6 +14,21 @@ from app.engines import GenerateRequest, MusicEngine
 from app.schemas import JobCreate
 
 log = logging.getLogger("songgen.jobs")
+
+
+def auto_title(r: JobCreate) -> str:
+    """Suno-style fallback: first line of the chorus, else the idea, else the first style tag."""
+    if r.title.strip():
+        return r.title.strip()
+    lines = [ln.strip() for ln in r.lyrics.splitlines()]
+    for i, ln in enumerate(lines):
+        if re.match(r"\[(final |main )?(chorus|hook|припев)", ln, re.I):
+            first = next((x for x in lines[i + 1 :] if x and not x.startswith("[")), "")
+            if first:
+                return first.strip(" ,.!?…—-")[:80]
+    if r.idea.strip():
+        return r.idea.strip()[:80]
+    return r.caption.split(",")[0].strip()[:80]
 
 
 @dataclass
@@ -38,7 +54,7 @@ class JobRunner:
         threading.Thread(target=self._run, name="gpu-worker", daemon=True).start()
 
     def submit(self, req: JobCreate) -> Job:
-        job = Job(req)
+        job = Job(req.model_copy(update={"title": auto_title(req)}))
         self.jobs[job.id] = job
         self.q.put(job)
         return job
@@ -88,6 +104,7 @@ class JobRunner:
                     "id": job.id,
                     "created_at": datetime.now(UTC).isoformat(),
                     "engine": self.engine.name,
+                    "title": r.title,
                     "idea": r.idea,
                     "caption": r.caption,
                     "lyrics": r.lyrics,

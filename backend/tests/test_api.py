@@ -98,3 +98,13 @@ def test_foreign_host_rejected(tmp_path: Path) -> None:
 def test_unknown_engine() -> None:
     with pytest.raises(ValueError):
         get_engine(Settings(engine="nope"))
+
+
+@pytest.mark.parametrize(
+    ("caption", "bpm"),
+    [("pop rock, 150 bpm", 150), ("rap, 95BPM, raspy", 95), ("ambient", None), ("1000 bpm", None)],
+)
+def test_caption_bpm(caption: str, bpm: int | None) -> None:
+    from app.engines.acestep import caption_bpm  # no torch import at module level
+
+    assert caption_bpm(caption) == bpm

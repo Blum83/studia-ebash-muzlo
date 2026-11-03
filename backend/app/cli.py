@@ -66,13 +66,24 @@ def cmd_generate(a: argparse.Namespace) -> int:
 
 
 def cmd_serve(_: argparse.Namespace) -> int:
+    from functools import partial
+
     import uvicorn
 
     from app.api import create_app
+    from app.config import ROOT
     from app.db import DB
+    from app.lyrics import provider, write_song
 
+    lyrics_via = provider(settings) if settings.lyrics_provider != "off" else None
+    print(f"Lyrics writer: {lyrics_via or 'disabled'}")
     app = create_app(
-        get_engine(settings), DB(settings.db_path), settings.output_dir, settings.allowed_hosts
+        get_engine(settings),
+        DB(settings.db_path),
+        settings.output_dir,
+        settings.allowed_hosts,
+        songwriter=partial(write_song, settings) if lyrics_via else None,
+        frontend_dir=ROOT / "frontend" / "dist",
     )
     uvicorn.run(app, host=settings.host, port=settings.port)
     return 0

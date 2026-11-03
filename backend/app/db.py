@@ -17,7 +17,8 @@ CREATE TABLE IF NOT EXISTS tracks (
     params TEXT NOT NULL,
     meta TEXT NOT NULL,
     wav_path TEXT NOT NULL,
-    mp3_path TEXT NOT NULL
+    mp3_path TEXT NOT NULL,
+    title TEXT NOT NULL DEFAULT ''
 )
 """
 JSON_COLS = ("params", "meta")
@@ -32,6 +33,9 @@ class DB:
         self.conn.row_factory = sqlite3.Row
         self.lock = threading.Lock()
         self.conn.execute(SCHEMA)
+        cols = {r["name"] for r in self.conn.execute("PRAGMA table_info(tracks)")}
+        if "title" not in cols:  # DBs created before titles existed
+            self.conn.execute("ALTER TABLE tracks ADD COLUMN title TEXT NOT NULL DEFAULT ''")
 
     def insert(self, row: dict[str, Any]) -> None:
         row = {

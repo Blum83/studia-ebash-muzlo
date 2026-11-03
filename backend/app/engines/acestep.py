@@ -1,9 +1,17 @@
 import os
+import re
 from dataclasses import asdict
 from pathlib import Path
 
 from app.config import Settings
 from app.engines.base import GenerateRequest, GenerateResult, MusicEngine
+
+BPM_MIN, BPM_MAX = 30, 300  # acestep/constants.py
+
+
+def caption_bpm(caption: str) -> int | None:
+    m = re.search(r"(\d{2,3})\s*bpm", caption, re.I)
+    return int(m.group(1)) if m and BPM_MIN <= int(m.group(1)) <= BPM_MAX else None
 
 
 class AceStepEngine(MusicEngine):
@@ -50,6 +58,11 @@ class AceStepEngine(MusicEngine):
         from acestep.inference import GenerationConfig, GenerationParams, generate_music
 
         lyrics = "[Instrumental]" if req.instrumental and not req.lyrics.strip() else req.lyrics
+        extra = dict(req.extra)
+        # The 0.6B LM ignores "NNN bpm" in the caption and drifts to the 30/300 range edges;
+        # pass it as an explicit hint so the LM keeps it.
+        if "bpm" not in extra and (bpm := caption_bpm(req.caption)):
+            extra["bpm"] = bpm
         params = GenerationParams(
             task_type=req.task,
             caption=req.caption,
@@ -59,7 +72,7 @@ class AceStepEngine(MusicEngine):
             duration=req.duration,
             seed=req.seed,
             thinking=bool(self.s.acestep_lm_model),
-            **req.extra,
+            **extra,
         )
         config = GenerationConfig(
             batch_size=1,
